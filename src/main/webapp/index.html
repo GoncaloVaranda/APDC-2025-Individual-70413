@@ -2,28 +2,40 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
-    <title>ADC: My First Web App</title>
+    <title>ADC: Individual Evaluation</title>
   </head>
 
   <body>
-    <h1>Welcome to this very simple web application!</h1>
+    <h1>Individual Evaluation Exercise</h1>
 
     <table>
       <tr>
         <td colspan="2" style="font-weight:bold;">Available Services:</td>        
       </tr>
       <tr>
-        <td><a href='https://www.di.fct.unl.pt'>DI-FCT-UNL</a></td><td>(greetings)</td>
+        <td><form id="RegisterForm">
+			  <label for="username">Username:</label><br>
+			  <input type="text" id="username" name="username"><br>
+			  <label for="pwd">Password:</label><br>
+			  <input type="password" id="pwd" name="pwd"><br>
+			  <input type="submit" value="Register">
+			</form>
       </tr>
+       <tr>
+	    <td style="padding: 10px;"></td>
+	  </tr>
       <tr>
-        <td><a href='/rest/utils/hello'>Say Hello!</a></td><td>(greetings)</td>
+        <td><form id="loginForm">
+			  <label for="username">Username:</label><br>
+			  <input type="text" id="username" name="username"><br>
+			  <label for="pwd">Password:</label><br>
+			  <input type="password" id="pwd" name="pwd"><br>
+			  <input type="submit" value="Login">
+			</form>
       </tr>
       <tr>
         <td><a href='/rest/utils/time'>What time is it?</a></td><td>(see server time)</td>
       </tr>
     </table>
   </body>
-  <footer>
-  	Copyright: ADC-PEI, FCT NOVA 2025
-  </footer>
 </html>

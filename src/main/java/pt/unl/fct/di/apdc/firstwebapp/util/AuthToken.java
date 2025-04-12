@@ -8,18 +8,25 @@ public class AuthToken {
 	
 	public String username;
 	public String tokenID;
-	public long creationData;
-	public long expirationData;
+	public String role;
+	public long validity_from;
+	public long validity_to;
 	
 	public AuthToken() {
 
 	}
 	
-	public AuthToken(String username) {
+	public AuthToken(String username, String role) {
 		this.username = username;
+		this.role = role;
 		this.tokenID = UUID.randomUUID().toString();
-		this.creationData = System.currentTimeMillis();
-		this.expirationData = this.creationData - EXPIRATION_TIME;
+		this.validity_from = System.currentTimeMillis();
+		this.validity_to = this.validity_from + EXPIRATION_TIME;
+	}
+	
+	public boolean authIsValid() {
+		long currentinstant = System.currentTimeMillis();
+		return currentinstant<validity_to;
 	}
 	
 }
