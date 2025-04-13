@@ -33,9 +33,9 @@ import pt.unl.fct.di.apdc.firstwebapp.util.LogoutData;
 
 @Path("/logout")
 @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8") 
-public class LogoutResources {
+public class LogoutResource {
 
-	private static final Logger LOG = Logger.getLogger(LogoutResources.class.getName()); 
+	private static final Logger LOG = Logger.getLogger(LogoutResource.class.getName()); 
 	private final Gson g = new Gson();
 
     private static final Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
@@ -43,13 +43,13 @@ public class LogoutResources {
 
 	private static final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
 
-	public LogoutResources() {} //nothing to be done here @GET
+	public LogoutResource() {} //nothing to be done here @GET
 
 	
 	    @POST
 	    @Path("/")
 	    @Consumes(MediaType.APPLICATION_JSON)
-	    public Response changeRole(LogoutData data) {
+	    public Response doLogout(LogoutData data) {
 		 
 	    	
 	    	Transaction txn = datastore.newTransaction(); 

@@ -59,7 +59,7 @@ public class ListUsersResources {
 	    @POST
 	    @Path("/")
 	    @Consumes(MediaType.APPLICATION_JSON)
-	    public Response changeAccountState(ListUsersData data) {
+	    public Response listUsers(ListUsersData data) {
 	    	
 	    	Transaction txn = datastore.newTransaction(); 
 	    	Key authtokenId = datastore.newKeyFactory().setKind("Token").newKey(data.tokenId);
