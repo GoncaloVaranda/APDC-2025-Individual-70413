@@ -138,12 +138,16 @@ public class LoginResource {
 				//Creating Token post login
 				AuthToken token = new AuthToken(data.username, user.getString("user_role"));
 				Key tokenKey = datastore.newKeyFactory().setKind("Token").newKey(token.tokenID);
+				Entity oldtokenEnt = txn.get(tokenKey);
+				if(oldtokenEnt!=null)txn.delete(tokenKey);
+				
 				Entity tokenEnt = Entity.newBuilder(tokenKey).set("user_name", token.username)
 															.set("user_role", token.role)
 															.set("validity_from", token.validity_from)
 															.set("validity_to", token.validity_to).build();
-				txn.put(tokenEnt);
 				
+				
+				txn.put(tokenEnt);
 				
 				// Batch operation
 				txn.put(log, ustats);

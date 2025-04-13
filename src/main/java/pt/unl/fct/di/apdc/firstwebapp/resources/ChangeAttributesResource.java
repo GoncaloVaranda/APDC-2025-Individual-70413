@@ -23,8 +23,7 @@ import jakarta.ws.rs.core.Response.Status;
 import com.google.cloud.tasks.v2.*;
 import com.google.cloud.tasks.v2.HttpMethod;
 import com.google.gson.Gson;
-import com.google.protobuf.Timestamp;
-
+import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.*;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
@@ -33,6 +32,7 @@ import pt.unl.fct.di.apdc.firstwebapp.util.AuthToken;
 import pt.unl.fct.di.apdc.firstwebapp.util.ChangeAccountStateData;
 import pt.unl.fct.di.apdc.firstwebapp.util.ChangeAttributesData;
 import pt.unl.fct.di.apdc.firstwebapp.util.LoginData;
+import pt.unl.fct.di.apdc.firstwebapp.resources.UserAttributeLister;
 
 
 @Path("/changeattributes")
@@ -78,10 +78,10 @@ public class ChangeAttributesResource {
 			
 			
 			//invalid attribute check
-			if (!data.attributeType.equals("username") || !data.attributeType.equals("email") || !data.attributeType.equals("fullname") ||
-					!data.attributeType.equals("phone") || !data.attributeType.equals("profile") || !data.attributeType.equals("citizenCardNumber") ||
-					!data.attributeType.equals("role") || !data.attributeType.equals("userNif") || !data.attributeType.equals("employer") ||
-					!data.attributeType.equals("job") || !data.attributeType.equals("address") || !data.attributeType.equals("employerNif") ||
+			if (!data.attributeType.equals("username") && !data.attributeType.equals("email") && !data.attributeType.equals("fullname") &&
+					!data.attributeType.equals("phone") && !data.attributeType.equals("profile") && !data.attributeType.equals("citizenCardNumber") &&
+					!data.attributeType.equals("role") && !data.attributeType.equals("userNif") && !data.attributeType.equals("employer") &&
+					!data.attributeType.equals("job") && !data.attributeType.equals("address") && !data.attributeType.equals("employerNif") &&
 					!data.attributeType.equals("accountState") ) {
 				return Response.status(Status.FORBIDDEN)
 						.entity("Invalid Attribute. Has to be either username, email, fullname, phone, profile, citizenCardNumber, role, \n  userNif, employer, job, address, employerNif, accountState ")
@@ -106,6 +106,30 @@ public class ChangeAttributesResource {
 		                .entity("Authentication Token has expired")
 		                .build();
 		    }
+		    
+		    if(data.attributeType.equals("accountState")) {
+		    	if(!(data.newValue.equals("deactivated") || data.newValue.equals("activated")
+		        		|| data.newValue.equals("suspended") )) {
+		        	return Response.status(Status.FORBIDDEN)
+							.entity("Invalid Accout State").build();
+		        }
+		    }
+		    
+		    if(data.attributeType.equals("profile")) {
+		    	if(!(data.newValue.equals("private") || data.newValue.equals("public"))) {
+		        	return Response.status(Status.FORBIDDEN)
+							.entity("Invalid Profile Type").build();
+		        }
+		    }
+		    
+		    if(data.attributeType.equals("role")) {
+		    	if(!(data.newValue.equals("backoffice") || data.newValue.equals("partner")
+		        		|| data.newValue.equals("admin") || data.newValue.equals("enduser"))) {
+		        	return Response.status(Status.FORBIDDEN)
+							.entity("Invalid Role").build();
+		        }
+		    }
+		    
 	    	
 
 		    String tokenRole = authtoken.getString("user_role");
@@ -145,25 +169,34 @@ public class ChangeAttributesResource {
 	        
 	        
 	        String updatedAttributeType = "user_" + data.attributeType;
-	        Key userEmailOldKey = null;
-	        Entity emailNew= null;
-	        Key userNewKey= null;
+	        Key userEmailNewKey = datastore.newKeyFactory().setKind("Email").newKey(data.newValue);
+	        Key userEmailOldKey = datastore.newKeyFactory().setKind("Email").newKey(targetUserEmail);
+	        Entity emailNew= txn.get(userEmailNewKey);
+	        Entity emailOld= txn.get(userEmailOldKey);
 	        Entity userNew= null;
 	        Entity tokenNewEnt= null;
 	        boolean changeUsername = data.attributeType.equals("username");
 	        boolean changeEmail = data.attributeType.equals("email");
 	        if(!changeUsername) { 
 	        	if(changeEmail) { //caso o atributo a alterar seja o email
-	        		Key userEmailNewKey = datastore.newKeyFactory().setKind("Email").newKey(data.newValue);
+	        		
+	        		if(emailNew!=null) 	return Response.status(Response.Status.FORBIDDEN).entity("Email already in use").build();
+		        	
+	        		
 	        		emailNew = Entity.newBuilder(userEmailNewKey).set("user_name", data.username).build();
-					
-					userEmailOldKey = datastore.newKeyFactory().setKind("Email").newKey(targetUserEmail);
+	        		
 	        	}
 	        }else {  //caso o atributo a alterar seja o username
-		        	UserAttributeLister lister = new UserAttributeLister(data.username);
-		        	String[] arr = lister.listAttributes(tokenUsername);
 		        	
-		        	userNewKey = datastore.newKeyFactory().setKind("User").newKey(data.newValue);
+		        	Key userNewKey = datastore.newKeyFactory().setKind("User").newKey(data.newValue);
+		        	userNew = txn.get(userNewKey);
+		        	
+		        	if(userNew!=null) return Response.status(Response.Status.FORBIDDEN).entity("Username already in use").build();
+		        	
+		        	UserAttributeLister lister = new UserAttributeLister(data.username);
+		        	String[] arr = lister.listAttributes(data.username);
+		        	
+		        	Timestamp time = targetUser.getTimestamp("user_creation_time");
 		        	
 		        	userNew = Entity.newBuilder(userNewKey).set("user_email", arr[0]).set("user_fullname", arr[1])
 							.set("user_phone", arr[2]).set("user_pwd", arr[3])
@@ -172,17 +205,18 @@ public class ChangeAttributesResource {
 							.set("user_userNif", arr[7]).set("user_employer", arr[8])
 							.set("user_job", arr[9]).set("user_address", arr[10])
 							.set("user_employerNif", arr[11]).set("user_accountState", arr[12])
-							.set("user_creation_time", arr[13]).build();
+							.set("user_creation_time", time) .build();
 					
 					
-		        	
-		        	AuthToken auth = new AuthToken(data.username,userNew.getString("user_role"));
-		        	String tokenValidityFrom = authtoken.getString("validity_from");
-		        	String tokenValidityTo = authtoken.getString("validity_to");
-					Key tokenNewKey = datastore.newKeyFactory().setKind("Token").newKey(auth.tokenID);
-					tokenNewEnt = Entity.newBuilder(tokenNewKey).set("user_name", tokenUsername)															
-																.set("validity_from", tokenValidityFrom)
-																.set("validity_to", tokenValidityTo).build();
+		        	//mudar o username do token
+					tokenNewEnt = Entity.newBuilder(authtoken)
+		                    .set("user_name", data.newValue)  
+		                    .build();
+					
+					//mudar o username do token
+					emailOld = Entity.newBuilder(emailOld)
+		                    .set("user_name", data.newValue)  
+		                    .build();
 	        
 	        	
 	        }
@@ -202,16 +236,16 @@ public class ChangeAttributesResource {
 		        }else { //case o atributo a alterar seja o username
 		     
 					txn.delete(targetUserKey); //apagar user antigo
-					txn.delete(authtokenId);  //apagar chave antiga
 					txn.put(tokenNewEnt);
+					txn.put(emailOld);
 	        		txn.put(userNew);
 		            txn.commit();
 		        }
 	        	
-	            return Response.ok().entity("Account State changed with success").build();
+	            return Response.ok().entity("Attribute changed with success").build();
 	        } catch (DatastoreException e) {
 	            txn.rollback();
-	            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error in the process of altering account state").build();
+	            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error in the process of altering attribute"	).build();
 	        } finally {
 	            if (txn.isActive()) {
 	                txn.rollback();
