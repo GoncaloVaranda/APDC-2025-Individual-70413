@@ -39,7 +39,7 @@ import pt.unl.fct.di.apdc.firstwebapp.resources.UserAttributeLister;
 @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8") 
 public class ChangeAttributesResource {
 
-	private static final Logger LOG = Logger.getLogger(ChangeRoleResource.class.getName()); 
+	private static final Logger LOG = Logger.getLogger(ChangeAttributesResource.class.getName()); 
 	private final Gson g = new Gson();
 
     private static final Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
@@ -53,7 +53,7 @@ public class ChangeAttributesResource {
 	    @POST
 	    @Path("/")
 	    @Consumes(MediaType.APPLICATION_JSON)
-	    public Response changeAccountState(ChangeAttributesData data) {
+	    public Response changeAttribute(ChangeAttributesData data) {
 	    	
 	    	Transaction txn = datastore.newTransaction(); 
 	    	Key authtokenId = datastore.newKeyFactory().setKind("Token").newKey(data.tokenId);

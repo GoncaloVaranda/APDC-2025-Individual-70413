@@ -40,7 +40,7 @@ import pt.unl.fct.di.apdc.firstwebapp.util.LoginData;
 @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8") 
 public class ChangePasswordResource {
 
-	private static final Logger LOG = Logger.getLogger(LogoutResource.class.getName()); 
+	private static final Logger LOG = Logger.getLogger(ChangePasswordResource.class.getName()); 
 	private final Gson g = new Gson();
 
     private static final Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
@@ -54,7 +54,7 @@ public class ChangePasswordResource {
 	    @POST
 	    @Path("/")
 	    @Consumes(MediaType.APPLICATION_JSON)
-	    public Response changeRole(ChangePasswordData data) {
+	    public Response changePassword(ChangePasswordData data) {
 		 
 	    	
 	    	Transaction txn = datastore.newTransaction(); 

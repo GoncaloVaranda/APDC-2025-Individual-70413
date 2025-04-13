@@ -37,7 +37,7 @@ import pt.unl.fct.di.apdc.firstwebapp.util.LoginData;
 @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8") 
 public class ChangeAccountStateResource {
 
-	private static final Logger LOG = Logger.getLogger(ChangeRoleResource.class.getName()); 
+	private static final Logger LOG = Logger.getLogger(ChangeAccountStateResource.class.getName()); 
 	private final Gson g = new Gson();
 
     private static final Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
